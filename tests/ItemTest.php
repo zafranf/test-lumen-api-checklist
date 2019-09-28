@@ -31,7 +31,8 @@ class ItemTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'current_page',
+            'success',
+            'message',
             'data' => [
                 'id',
                 'description',
@@ -61,11 +62,6 @@ class ItemTest extends TestCase
                     ],
                 ],
             ],
-            'first_page_url',
-            'last_page_url',
-            'next_page_url',
-            'prev_page_url',
-            'total',
         ]);
     }
 
@@ -80,7 +76,7 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
+        $item = \App\ChecklistItem::where('checklist_id', $this->checklist->id)->orderBy('created_at', 'desc')->first();
 
         /* send request */
         $this->actingAs($user)->get('/api/checklists/' . $this->checklist->id . '/items/' . $item->id);
@@ -105,7 +101,7 @@ class ItemTest extends TestCase
                 'updated_by',
                 'created_at',
                 'updated_at',
-                'items' => [
+                'item' => [
                     'id',
                     'description',
                     'is_completed',
@@ -176,7 +172,7 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
+        $item = \App\ChecklistItem::where('checklist_id', $this->checklist->id)->orderBy('created_at', 'desc')->first();
 
         /* send request */
         $is_complete = rand(0, 1);
@@ -223,7 +219,7 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
+        $item = \App\ChecklistItem::where('checklist_id', $this->checklist->id)->orderBy('created_at', 'desc')->first();
 
         /* send request */
         $this->actingAs($user)->json('delete', '/api/checklists/' . $this->checklist->id . '/items/' . $item->id);
