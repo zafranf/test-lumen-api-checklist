@@ -1,7 +1,5 @@
 <?php
 
-use Faker\Factory;
-
 class TemplateTest extends TestCase
 {
     protected $faker;
@@ -10,7 +8,7 @@ class TemplateTest extends TestCase
     {
         parent::setUp();
 
-        $this->faker = Factory::create();
+        $this->faker = \Faker\Factory::create();
     }
 
     /**
