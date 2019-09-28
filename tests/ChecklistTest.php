@@ -66,8 +66,11 @@ class ChecklistTest extends TestCase
         /* get user */
         $user = \App\User::find(1);
 
+        /* get checklist */
+        $checklist = \App\Checklist::orderBy('created_at', 'desc')->first();
+
         /* send request */
-        $this->actingAs($user)->get('/api/checklists/1');
+        $this->actingAs($user)->get('/api/checklists/' . $checklist->id);
 
         /* check status code */
         $this->seeStatusCode(200);
