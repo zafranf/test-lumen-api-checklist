@@ -16,10 +16,10 @@ class CreateChecklistItemsTable extends Migration
         Schema::create('checklist_items', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('description');
-            $table->timestamp('due');
+            $table->timestamp('due')->nullable();
             $table->integer('due_interval')->nullable();
             $table->string('due_unit')->nullable();
-            $table->boolean('urgency');
+            $table->boolean('urgency')->nullable();
             $table->bigInteger('checklist_id');
             $table->boolean('is_completed')->default(0);
             $table->timestamp('completed_at')->nullable();
