@@ -150,4 +150,33 @@ class ItemController extends Controller
 
         return response('', 204);
     }
+
+    public function complete(Request $r, $complete = true)
+    {
+        $data = [];
+        $items = $r->input('data');
+        foreach ($items as $item) {
+            $cl_item = \App\ChecklistItem::find($item['item_id']);
+            $cl_item->is_completed = $complete ? 1 : 0;
+            $cl_item->completed_at = $complete ? \Carbon\Carbon::now() : null;
+            $cl_item->save();
+
+            $data[] = [
+                'id' => $cl_item->id,
+                'is_completed' => $cl_item->is_completed,
+                'checklist_id' => $cl_item->checklist_id,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => ($complete ? 'Complete' : 'Uncomplete') . 'items success',
+            'data' => $data,
+        ]);
+    }
+
+    public function uncomplete(Request $r)
+    {
+        return $this->complete($r, false);
+    }
 }

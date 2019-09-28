@@ -242,7 +242,7 @@ class ItemTest extends TestCase
         }
 
         /* send request */
-        $this->actingAs($user)->json('patch', '/api/checklists/complete', [
+        $this->actingAs($user)->json('post', '/api/checklists/complete', [
             'data' => $data,
         ]);
 
@@ -254,10 +254,11 @@ class ItemTest extends TestCase
             'success',
             'message',
             'data' => [
-                'id',
-                'item_id',
-                'is_completed',
-                'checklist_id',
+                '*' => [
+                    'id',
+                    'is_completed',
+                    'checklist_id',
+                ],
             ],
         ]);
     }
@@ -276,7 +277,7 @@ class ItemTest extends TestCase
         }
 
         /* send request */
-        $this->actingAs($user)->json('patch', '/api/checklists/uncomplete', [
+        $this->actingAs($user)->json('post', '/api/checklists/uncomplete', [
             'data' => $data,
         ]);
 
@@ -288,10 +289,11 @@ class ItemTest extends TestCase
             'success',
             'message',
             'data' => [
-                'id',
-                'item_id',
-                'is_completed',
-                'checklist_id',
+                '*' => [
+                    'id',
+                    'is_completed',
+                    'checklist_id',
+                ],
             ],
         ]);
     }
