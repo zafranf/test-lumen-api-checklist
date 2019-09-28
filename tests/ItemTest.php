@@ -227,4 +227,72 @@ class ItemTest extends TestCase
         /* check status code */
         $this->seeStatusCode(204);
     }
+
+    public function testComplete()
+    {
+        /* get user */
+        $user = \App\User::find(1);
+
+        /* get item */
+        $items = \App\ChecklistItem::inRandomOrder()->take(5)->get();
+        foreach ($items as $item) {
+            $data[] = [
+                'item_id' => $item->id,
+            ];
+        }
+
+        /* send request */
+        $this->actingAs($user)->json('patch', '/api/checklists/complete', [
+            'data' => $data,
+        ]);
+
+        /* check status code */
+        $this->seeStatusCode(200);
+
+        /* check response structure */
+        $this->seeJsonStructure([
+            'success',
+            'message',
+            'data' => [
+                'id',
+                'item_id',
+                'is_completed',
+                'checklist_id',
+            ],
+        ]);
+    }
+
+    public function testUncomplete()
+    {
+        /* get user */
+        $user = \App\User::find(1);
+
+        /* get item */
+        $items = \App\ChecklistItem::inRandomOrder()->take(5)->get();
+        foreach ($items as $item) {
+            $data[] = [
+                'item_id' => $item->id,
+            ];
+        }
+
+        /* send request */
+        $this->actingAs($user)->json('patch', '/api/checklists/uncomplete', [
+            'data' => $data,
+        ]);
+
+        /* check status code */
+        $this->seeStatusCode(200);
+
+        /* check response structure */
+        $this->seeJsonStructure([
+            'success',
+            'message',
+            'data' => [
+                'id',
+                'item_id',
+                'is_completed',
+                'checklist_id',
+            ],
+        ]);
+    }
 }
