@@ -28,5 +28,12 @@ $router->group(['prefix' => 'api'], function ($router) {
         $router->post('/templates', 'TemplateController@store');
         $router->patch('/templates/{id}', 'TemplateController@update');
         $router->delete('/templates/{id}', 'TemplateController@destroy');
+
+        /* checklists */
+        $router->get('/checklists', 'ChecklistController@index');
+        $router->get('/checklists/{id}', 'ChecklistController@show');
+        $router->post('/checklists', 'ChecklistController@store');
+        $router->patch('/checklists/{id}', 'ChecklistController@update');
+        $router->delete('/checklists/{id}', 'ChecklistController@destroy');
     });
 });
