@@ -27,10 +27,15 @@ class ChecklistController extends Controller
     public function store(Request $r)
     {
         /* create */
-        $create = $this->repository->create($r->input('data.attributes'));
+        $attr = $r->input('data.attributes');
+        $attr['due'] = \Carbon\Carbon::parse($attr['due']);
+        $attr['created_by'] = \Auth::user()->id;
+        $items = $attr['items'];
+        unset($attr['items']);
+        $create = $this->repository->create($attr);
 
         /* save items */
-        $this->saveItems($r, $create['data']['id']);
+        $this->saveItems($items, $create['data']['id']);
 
         return response()->json($create, 201);
     }
@@ -39,6 +44,10 @@ class ChecklistController extends Controller
     {
         if (!$r->input('data.attributes')) {
             $data['attributes'] = $r->input('data');
+            if ($r->input('data.due')) {
+                $data['attributes']['due'] = \Carbon\Carbon::parse($r->input('data.due'));
+            }
+            $data['attributes']['updated_by'] = \Auth::user()->id;
             $r->merge([
                 'data' => $data,
             ]);
@@ -80,9 +89,8 @@ class ChecklistController extends Controller
         return response('', 204);
     }
 
-    public function saveItems(Request $r, $checklist_id, $is_update = false)
+    public function saveItems($items, $checklist_id, $is_update = false)
     {
-        $items = $r->input('data.attributes.items');
         foreach ($items as $item) {
             $cl_item = \App\ChecklistItem::firstOrNew(['description' => $item]);
             $cl_item->description = $item;

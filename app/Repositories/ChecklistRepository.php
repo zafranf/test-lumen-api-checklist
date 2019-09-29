@@ -6,7 +6,7 @@ use Prettus\Repository\Eloquent\BaseRepository;
 class ChecklistRepository extends BaseRepository
 {
     protected $fieldSearchable = [
-        'name' => 'like',
+        'description' => 'like',
     ];
 
     public function boot()

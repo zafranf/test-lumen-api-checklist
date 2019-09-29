@@ -7,7 +7,7 @@ class CustomApiSerializer extends JsonApiSerializer
 {
     public function __construct()
     {
-        $this->baseUrl = app()->request->url();
+        // $this->baseUrl = app()->request->url();
     }
 
     public function meta($meta)
@@ -22,6 +22,14 @@ class CustomApiSerializer extends JsonApiSerializer
         }
         if (isset($meta["meta"]["pagination"])) {
             unset($meta["meta"]['pagination']);
+        }
+        if (isset($meta['links'])) {
+            if (!isset($meta['links']['next'])) {
+                $meta['links']['next'] = null;
+            }
+            if (!isset($meta['links']['prev'])) {
+                $meta['links']['prev'] = null;
+            }
         }
 
         return $meta;
