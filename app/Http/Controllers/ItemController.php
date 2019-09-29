@@ -6,7 +6,23 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
-    public function index(Request $r, $id)
+    public function index(Request $r)
+    {
+        $items = new \App\ChecklistItem();
+
+        if ($r->input('filter')) {
+            $items = $items->where('description', 'like', '%' . $r->input('filter') . '%');
+        }
+        if ($r->input('sort')) {
+            $items = $items->orderBy('created_at', $r->input('sort'));
+        }
+
+        $items = $items->paginate();
+
+        return response()->json($items);
+    }
+
+    public function indexByChecklist(Request $r, $id)
     {
         $checklist = \App\Checklist::with('items')->find($id);
 
@@ -21,7 +37,7 @@ class ItemController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Items found!',
+            'message' => 'Items by checklist found!',
             'data' => $checklist,
         ]);
     }

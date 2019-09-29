@@ -29,20 +29,21 @@ $router->group(['prefix' => 'api'], function ($router) {
         $router->patch('/templates/{id}', 'TemplateController@update');
         $router->delete('/templates/{id}', 'TemplateController@destroy');
 
-        /* checklists */
-        $router->get('/checklists', 'ChecklistController@index');
-        $router->get('/checklists/{id}', 'ChecklistController@show');
-        $router->post('/checklists', 'ChecklistController@store');
-        $router->patch('/checklists/{id}', 'ChecklistController@update');
-        $router->delete('/checklists/{id}', 'ChecklistController@destroy');
-
         /* checklist items */
-        $router->get('/checklists/{id}/items', 'ItemController@index');
+        $router->get('/checklists/items', 'ItemController@index');
+        $router->get('/checklists/{id}/items', 'ItemController@indexByChecklist');
         $router->get('/checklists/{id}/items/{item_id}', 'ItemController@show');
         $router->post('/checklists/{id}/items', 'ItemController@store');
         $router->patch('/checklists/{id}/items/{item_id}', 'ItemController@update');
         $router->delete('/checklists/{id}/items/{item_id}', 'ItemController@destroy');
         $router->post('/checklists/complete', 'ItemController@complete');
         $router->post('/checklists/uncomplete', 'ItemController@uncomplete');
+
+        /* checklists */
+        $router->get('/checklists', 'ChecklistController@index');
+        $router->get('/checklists/{id}', 'ChecklistController@show');
+        $router->post('/checklists', 'ChecklistController@store');
+        $router->patch('/checklists/{id}', 'ChecklistController@update');
+        $router->delete('/checklists/{id}', 'ChecklistController@destroy');
     });
 });

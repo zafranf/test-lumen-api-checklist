@@ -24,6 +24,48 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* send request */
+        $this->actingAs($user)->get('/api/checklists/items');
+
+        /* check status code */
+        $this->seeStatusCode(200);
+
+        /* check response structure */
+        $this->seeJsonStructure([
+            'current_page',
+            'data' => [
+                '*' => [
+                    'id',
+                    'description',
+                    'is_completed',
+                    'completed_at',
+                    'due',
+                    'urgency',
+                    'checklist_id',
+                    'created_by',
+                    'updated_by',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+            'first_page_url',
+            'last_page_url',
+            'next_page_url',
+            'prev_page_url',
+            'total',
+        ]);
+    }
+
+    /**
+     * Test List All Items
+     *
+     * @return void
+     */
+    public function testListAllItemsByChecklist()
+    {
+        /* get user */
+        $user = \App\User::find(1);
+
+        /* send request */
         $this->actingAs($user)->get('/api/checklists/' . $this->checklist->id . '/items');
 
         /* check status code */
