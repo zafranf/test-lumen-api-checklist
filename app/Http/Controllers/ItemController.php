@@ -2,70 +2,40 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\ChecklistItemRepository;
+use App\Repositories\ChecklistWithItemRepository;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
+    protected $repository;
+    protected $cli_repository;
+
+    public function __construct(ChecklistItemRepository $repository, ChecklistWithItemRepository $cli_repository)
+    {
+        $this->repository = $repository;
+        $this->cli_repository = $cli_repository;
+    }
+
     public function index(Request $r)
     {
-        $items = new \App\ChecklistItem();
-
-        if ($r->input('filter')) {
-            $items = $items->where('description', 'like', '%' . $r->input('filter') . '%');
-        }
-        if ($r->input('sort')) {
-            $items = $items->orderBy('created_at', $r->input('sort'));
-        }
-
-        $items = $items->paginate();
-
-        return response()->json($items);
+        return $this->repository->paginate(10);
     }
 
     public function indexByChecklist(Request $r, $id)
     {
-        $checklist = \App\Checklist::with('items')->find($id);
-
-        if ($r->input('filter')) {
-            $checklist = $checklist->where('description', 'like', '%' . $r->input('filter') . '%');
-        }
-        if ($r->input('sort')) {
-            $checklist = $checklist->orderBy('created_at', $r->input('sort'));
-        }
-
-        // $checklist = $checklist->paginate();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Items by checklist found!',
-            'data' => $checklist,
-        ]);
+        return $this->cli_repository->find($id);
     }
 
     public function show(Request $r, $id, $item_id)
     {
-        $checklist = \App\Checklist::find($id);
-        if (!$checklist) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist not found!',
-            ], 404);
-        }
+        $collect = collect($this->repository->findWhere([
+            'checklist_id' => $id,
+            'id' => $item_id,
+        ])['data']);
+        $data['data'] = $collect->first();
 
-        $item = \App\ChecklistItem::where('checklist_id', $checklist->id)->find($item_id);
-        if (!$item) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist item not found!',
-            ], 404);
-        }
-        $checklist->item = $item;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Item found!',
-            'data' => $checklist,
-        ]);
+        return $data;
     }
 
     public function store(Request $r, $id)
@@ -78,28 +48,13 @@ class ItemController extends Controller
             ], 404);
         }
 
-        /* save the checklist */
-        $item = new \App\ChecklistItem();
-        $item->description = $r->input('data.description');
-        $item->due = \Carbon\Carbon::parse($r->input('data.due'));
-        $item->urgency = $r->input('data.urgency');
-        $item->checklist_id = $r->input('data.checklist_id');
-        $item->created_by = \Auth::user()->id;
-        $item->save();
+        /* create */
+        $attr = $r->input('data.attribute');
+        $attr['due'] = \Carbon\Carbon::parse($attr['due']);
+        $attr['created_by'] = \Auth::user()->id;
+        $create = $this->repository->create($attr);
 
-        /* return error */
-        if (!$item) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist item not saved!',
-            ], 400);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Checklist item saved!',
-            'data' => \App\ChecklistItem::find($item->id),
-        ], 201);
+        return response()->json($create, 201);
     }
 
     public function update(Request $r, $id, $item_id)
@@ -121,26 +76,13 @@ class ItemController extends Controller
             ], 404);
         }
 
-        $item->description = $r->input('data.description');
-        $item->due = \Carbon\Carbon::parse($r->input('data.due'));
-        $item->urgency = $r->input('data.urgency');
-        $item->checklist_id = $r->input('data.checklist_id');
-        $item->updated_by = \Auth::user()->id;
-        $item->save();
+        /* create */
+        $attr = $r->input('data.attribute');
+        $attr['due'] = \Carbon\Carbon::parse($attr['due']);
+        $attr['updated_by'] = \Auth::user()->id;
+        $update = $this->repository->update($attr, $item->id);
 
-        /* return error */
-        if (!$item) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist item not updated!',
-            ], 400);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Checklist item updated!',
-            'data' => $item,
-        ], 201);
+        return response()->json($update);
     }
 
     public function destroy(Request $r, $id, $item_id)
@@ -162,7 +104,7 @@ class ItemController extends Controller
         }
 
         /* delete */
-        $item->delete();
+        $delete = $this->repository->delete($item->id);
 
         return response('', 204);
     }
@@ -179,14 +121,13 @@ class ItemController extends Controller
 
             $data[] = [
                 'id' => $cl_item->id,
-                'is_completed' => $cl_item->is_completed,
+                'item_id' => $cl_item->id,
+                'is_completed' => $cl_item->is_completed ? true : false,
                 'checklist_id' => $cl_item->checklist_id,
             ];
         }
 
         return response()->json([
-            'success' => true,
-            'message' => ($complete ? 'Complete' : 'Uncomplete') . 'items success',
             'data' => $data,
         ]);
     }

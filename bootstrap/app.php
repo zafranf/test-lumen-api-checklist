@@ -80,6 +80,9 @@ $app->routeMiddleware([
 $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
+$app->register(Prettus\Repository\Providers\LumenRepositoryServiceProvider::class);
+$app->configure('repository');
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

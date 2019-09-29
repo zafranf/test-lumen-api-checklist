@@ -2,80 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\ChecklistRepository;
 use Illuminate\Http\Request;
 
 class ChecklistController extends Controller
 {
+    protected $repository;
+
+    public function __construct(ChecklistRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
     public function index(Request $r)
     {
-        $checklists = new \App\Checklist();
-
-        if ($r->input('filter')) {
-            $checklists = $checklists->where('description', 'like', '%' . $r->input('filter') . '%');
-        }
-        if ($r->input('sort')) {
-            $checklists = $checklists->orderBy('created_at', $r->input('sort'));
-        }
-
-        $checklists = $checklists->paginate();
-
-        return response()->json($checklists);
+        return $this->repository->paginate(10);
     }
 
     public function show(Request $r, $id)
     {
-        $checklist = new \App\Checklist();
-        if ($r->input('include') == 'items') {
-            $checklist = $checklist->with('items');
-        }
-        $checklist = $checklist->find($id);
-        if (!$checklist) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist not found!',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Checklist found!',
-            'data' => $checklist,
-        ]);
+        return $this->repository->find($id);
     }
 
     public function store(Request $r)
     {
-        /* save the checklist */
-        $checklist = new \App\Checklist();
-        $checklist->description = $r->input('data.description');
-        $checklist->due = \Carbon\Carbon::parse($r->input('data.due'));
-        $checklist->object_domain = $r->input('data.object_domain');
-        $checklist->object_id = $r->input('data.object_id');
-        $checklist->urgency = $r->input('data.urgency');
-        $checklist->task_id = $r->input('data.task_id');
-        $checklist->created_by = \Auth::user()->id;
-        $checklist->save();
+        /* create */
+        $attr = $r->input('data.attributes');
+        $attr['due'] = \Carbon\Carbon::parse($attr['due']);
+        $attr['created_by'] = \Auth::user()->id;
+        $items = $attr['items'];
+        unset($attr['items']);
+        $create = $this->repository->create($attr);
 
         /* save items */
-        $this->saveItems($r, $checklist->id);
+        $this->saveItems($items, $create['data']['id']);
 
-        /* return error */
-        if (!$checklist) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist not saved!',
-            ], 400);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Checklist saved!',
-            'data' => \App\Checklist::find($checklist->id),
-        ], 201);
+        return response()->json($create, 201);
     }
 
     public function update(Request $r, $id)
     {
+        if (!$r->input('data.attributes')) {
+            $data['attributes'] = $r->input('data');
+            if ($r->input('data.due')) {
+                $data['attributes']['due'] = \Carbon\Carbon::parse($r->input('data.due'));
+            }
+            $data['attributes']['updated_by'] = \Auth::user()->id;
+            $r->merge([
+                'data' => $data,
+            ]);
+        }
+
         /* save the checklist */
         $checklist = \App\Checklist::find($id);
         if (!$checklist) {
@@ -85,28 +62,27 @@ class ChecklistController extends Controller
             ], 404);
         }
 
-        $checklist->description = $r->input('data.description');
-        $checklist->due = \Carbon\Carbon::parse($r->input('data.due'));
-        $checklist->object_domain = $r->input('data.object_domain');
-        $checklist->object_id = $r->input('data.object_id');
-        $checklist->urgency = $r->input('data.urgency');
-        $checklist->task_id = $r->input('data.task_id');
-        $checklist->updated_by = \Auth::user()->id;
-        $checklist->save();
+        /* update */
+        $attr = $r->input('data.attributes');
+        if (isset($attr['due'])) {
+            $attr['due'] = \Carbon\Carbon::parse($attr['due']);
+        }
+        if (isset($attr['completed_at'])) {
+            $attr['completed_at'] = \Carbon\Carbon::parse($attr['completed_at']);
+        }
+        $attr['updated_by'] = \Auth::user()->id;
+        $items = $attr['items'] ?? [];
+        if (!empty($items)) {
+            unset($attr['items']);
+        }
+        $update = $this->repository->update($attr, $checklist->id);
 
-        /* return error */
-        if (!$checklist) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checklist not updated!',
-            ], 400);
+        /* save items */
+        if ($r->input('data.attributes.items')) {
+            $this->saveItems($items, $update['data']['id']);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Checklist updated!',
-            'data' => $checklist,
-        ], 201);
+        return response()->json($update);
     }
 
     public function destroy(Request $r, $id)
@@ -120,14 +96,13 @@ class ChecklistController extends Controller
         }
 
         /* delete */
-        $checklist->delete();
+        $delete = $this->repository->delete($checklist->id);
 
         return response('', 204);
     }
 
-    public function saveItems(Request $r, $checklist_id, $is_update = false)
+    public function saveItems($items, $checklist_id, $is_update = false)
     {
-        $items = $r->input('data.items');
         foreach ($items as $item) {
             $cl_item = \App\ChecklistItem::firstOrNew(['description' => $item]);
             $cl_item->description = $item;

@@ -2,85 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\TemplateRepository;
 use Illuminate\Http\Request;
 
 class TemplateController extends Controller
 {
+    protected $repository;
+
+    public function __construct(TemplateRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
     public function index(Request $r)
     {
-        $templates = \App\Template::with('checklist.items');
-
-        if ($r->input('filter')) {
-            $templates = $templates->where('name', 'like', '%' . $r->input('filter') . '%');
-        }
-        if ($r->input('sort')) {
-            $templates = $templates->orderBy('created_at', $r->input('sort'));
-        }
-
-        $templates = $templates->paginate();
-
-        return response()->json($templates);
+        return $this->repository->paginate(10);
     }
 
     public function show(Request $r, $id)
     {
-        $template = \App\Template::with('checklist.items')->find($id);
-        if (!$template) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Template not found!',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Template found!',
-            'data' => $template,
-        ]);
+        return $this->repository->find($id);
     }
 
     public function store(Request $r)
     {
-        /* $this->validate($r, [
-        'data.attributes.name' => 'required|max:100',
-        'data.attributes.checklist.description' => 'required|max:100',
-        'data.attributes.checklist.due_interval' => 'required',
-        'data.attributes.checklist.due_unit' => 'required',
-        'data.attributes.items.*.description' => 'required',
-        'data.attributes.items.*.urgency' => 'required',
-        'data.attributes.items.*.due_interval' => 'required',
-        'data.attributes.items.*.due_unit' => 'required',
-        ]); */
-
         /* save checklist */
         $cl_id = $this->saveChecklist($r);
 
-        /* save the template */
-        $template = new \App\Template();
-        $template->name = $r->input('data.name');
-        $template->checklist_id = $cl_id;
-        $template->created_by = \Auth::user()->id;
-        $template->save();
+        /* create new input */
+        $r->merge([
+            'name' => $r->input('data.attributes.name'),
+            'created_by' => \Auth::user()->id,
+            'checklist_id' => $cl_id,
+        ]);
 
-        /* return error */
-        if (!$template) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Template not saved!',
-            ], 400);
-        }
+        /* create */
+        $create = $this->repository->create($r->only(['name', 'created_by', 'checklist_id']));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Template saved!',
-            'data' => $template->load('checklist.items'),
-        ], 201);
+        return response()->json($create, 201);
     }
 
     public function update(Request $r, $id)
     {
+        $data['attributes'] = $r->input('data');
+        $r->merge([
+            'data' => $data,
+        ]);
+
         /* save checklist */
         $cl_id = $this->saveChecklist($r, true);
+
+        /* create new input */
+        $r->merge([
+            'name' => $r->input('data.attributes.name'),
+            'updated_by' => \Auth::user()->id,
+            'checklist_id' => $cl_id,
+        ]);
 
         /* save the template */
         $template = \App\Template::find($id);
@@ -91,24 +68,7 @@ class TemplateController extends Controller
             ], 404);
         }
 
-        $template->name = $r->input('data.name');
-        $template->updated_by = \Auth::user()->id;
-        $template->checklist_id = $cl_id;
-        $template->save();
-
-        /* return error */
-        if (!$template) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Template not updated!',
-            ], 400);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Template updated!',
-            'data' => $template->load('checklist.items'),
-        ], 201);
+        return $this->repository->update($r->only(['name', 'updated_by', 'checklist_id']), $template->id);
     }
 
     public function destroy(Request $r, $id)
@@ -122,14 +82,14 @@ class TemplateController extends Controller
         }
 
         /* delete */
-        $template->delete();
+        $delete = $this->repository->delete($template->id);
 
         return response('', 204);
     }
 
     public function saveChecklist(Request $r, $is_update = false)
     {
-        $cl = $r->input('data.checklist');
+        $cl = $r->input('data.attributes.checklist');
 
         $checklist = \App\Checklist::firstOrNew(['description' => $cl['description']]);
         $checklist->description = $cl['description'];
@@ -150,7 +110,7 @@ class TemplateController extends Controller
 
     public function saveItems(Request $r, $checklist_id, $is_update = false)
     {
-        $items = $r->input('data.items');
+        $items = $r->input('data.attributes.items');
         foreach ($items as $item) {
             $cl_item = \App\ChecklistItem::firstOrNew(['description' => $item['description']]);
             $cl_item->description = $item['description'];

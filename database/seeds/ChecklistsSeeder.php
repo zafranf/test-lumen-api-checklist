@@ -16,8 +16,32 @@ class ChecklistsSeeder extends Seeder
 
         $no = rand(5, 10);
         for ($i = 1; $i <= $no; $i++) {
-            $checklist = new \App\Checklist();
+            $cl = \App\Checklist::create([
+                'description' => $faker->sentence(6),
+                'object_domain' => $faker->word,
+                'object_id' => rand(1, 10),
+                'due' => \Carbon\Carbon::now(),
+                'urgency' => rand(1, 5),
+                'task_id' => rand(1, 100),
+            ]);
 
+            $no_item = rand(5, 10);
+            for ($i = 1; $i <= $no_item; $i++) {
+                $item = \App\ChecklistItem::create([
+                    'description' => $faker->sentence(rand(3, 6)),
+                    'due' => \Carbon\Carbon::now(),
+                    'urgency' => rand(1, 5),
+                    'checklist_id' => $cl->id,
+                ]);
+            }
+
+            $no_template = rand(5, 10);
+            for ($i = 1; $i <= $no_template; $i++) {
+                $template = \App\Template::create([
+                    'name' => $faker->sentence(rand(3, 6)),
+                    'checklist_id' => $cl->id,
+                ]);
+            }
         }
     }
 }

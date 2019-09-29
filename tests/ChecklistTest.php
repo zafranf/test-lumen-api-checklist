@@ -29,28 +29,33 @@ class ChecklistTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'current_page',
             'data' => [
                 '*' => [
+                    'type',
                     'id',
-                    'description',
-                    'due',
-                    'urgency',
-                    'task_id',
-                    'object_id',
-                    'object_domain',
-                    'is_completed',
-                    'completed_at',
-                    'updated_by',
-                    'created_at',
-                    'updated_at',
+                    'attributes' => [
+                        'description',
+                        'due',
+                        'urgency',
+                        'task_id',
+                        'object_id',
+                        'object_domain',
+                        'is_completed',
+                        'completed_at',
+                        'last_update_by',
+                        'created_at',
+                        'updated_at',
+                    ],
                 ],
             ],
-            'first_page_url',
-            'last_page_url',
-            'next_page_url',
-            'prev_page_url',
-            'total',
+            'meta' => [
+                'count',
+                'total',
+            ],
+            'links' => [
+                'first',
+                'last',
+            ],
         ]);
     }
 
@@ -75,21 +80,22 @@ class ChecklistTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'due',
-                'urgency',
-                'task_id',
-                'object_id',
-                'object_domain',
-                'is_completed',
-                'completed_at',
-                'updated_by',
-                'created_at',
-                'updated_at',
+                'attributes' => [
+                    'description',
+                    'due',
+                    'urgency',
+                    'task_id',
+                    'object_id',
+                    'object_domain',
+                    'is_completed',
+                    'completed_at',
+                    'last_update_by',
+                    'created_at',
+                    'updated_at',
+                ],
             ],
         ]);
     }
@@ -107,17 +113,19 @@ class ChecklistTest extends TestCase
         /* send request */
         $this->actingAs($user)->json('post', '/api/checklists', [
             'data' => [
-                'description' => $this->faker->sentence(6),
-                'object_domain' => $this->faker->word,
-                'object_id' => rand(1, 10),
-                'due' => \Carbon\Carbon::now(),
-                'urgency' => rand(1, 5),
-                'items' => [
-                    $this->faker->sentence(rand(3, 6)),
-                    $this->faker->sentence(rand(3, 6)),
-                    $this->faker->sentence(rand(3, 6)),
+                'attributes' => [
+                    'description' => $this->faker->sentence(6),
+                    'object_domain' => $this->faker->word,
+                    'object_id' => rand(1, 10),
+                    'due' => \Carbon\Carbon::now(),
+                    'urgency' => rand(1, 5),
+                    'items' => [
+                        $this->faker->sentence(rand(3, 6)),
+                        $this->faker->sentence(rand(3, 6)),
+                        $this->faker->sentence(rand(3, 6)),
+                    ],
+                    'task_id' => rand(1, 100),
                 ],
-                'task_id' => rand(1, 100),
             ],
         ]);
 
@@ -126,22 +134,22 @@ class ChecklistTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'object_domain',
-                'object_id',
-                'task_id',
-                'due',
-                'urgency',
-                'is_completed',
-                'completed_at',
-                'created_by',
-                'updated_by',
-                'created_at',
-                'updated_at',
+                'attributes' => [
+                    'description',
+                    'due',
+                    'urgency',
+                    'task_id',
+                    'object_id',
+                    'object_domain',
+                    'is_completed',
+                    'completed_at',
+                    'last_update_by',
+                    'created_at',
+                    'updated_at',
+                ],
             ],
         ]);
     }
@@ -157,41 +165,43 @@ class ChecklistTest extends TestCase
         $user = \App\User::find(1);
 
         /* get checklist */
-        $checklist = \App\Checklist::orderBy('created_at', 'desc')->first();
+        $checklist = \App\Checklist::inRandomOrder()->first();
 
         /* send request */
         $is_complete = rand(0, 1);
         $this->actingAs($user)->json('patch', '/api/checklists/' . $checklist->id, [
             'data' => [
-                'description' => $this->faker->sentence(6),
-                'object_domain' => $this->faker->word,
-                'object_id' => rand(1, 10),
-                'is_completed' => $is_complete,
-                'completed_at' => $is_complete ? \Carbon\Carbon::now() : null,
+                'attributes' => [
+                    'description' => $this->faker->sentence(6),
+                    'object_domain' => $this->faker->word,
+                    'object_id' => rand(1, 10),
+                    'is_completed' => $is_complete,
+                    'completed_at' => $is_complete ? \Carbon\Carbon::now() : null,
+                ],
             ],
         ]);
 
         /* check status code */
-        $this->seeStatusCode(201);
+        $this->seeStatusCode(200);
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'object_domain',
-                'object_id',
-                'task_id',
-                'due',
-                'urgency',
-                'is_completed',
-                'completed_at',
-                'created_by',
-                'updated_by',
-                'created_at',
-                'updated_at',
+                'attributes' => [
+                    'description',
+                    'due',
+                    'urgency',
+                    'task_id',
+                    'object_id',
+                    'object_domain',
+                    'is_completed',
+                    'completed_at',
+                    'last_update_by',
+                    'created_at',
+                    'updated_at',
+                ],
             ],
         ]);
     }

@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChecklistItem extends Model
 {
-    protected $fillable = ['description'];
-    protected $dates = ['due'];
+    // protected $fillable = [];
+    protected $guarded = [];
+    protected $dates = ['due', 'completed_at'];
+
+    public function checklist()
+    {
+        return $this->belongsTo('\App\Checklist');
+    }
 }
