@@ -29,15 +29,17 @@ class TemplateTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'current_page',
             'data' => [
                 '*' => [
+                    'type',
                     'id',
-                    'name',
-                    'checklist' => [
-                        'description',
-                        'due_interval',
-                        'due_unit',
+                    'attributes' => [
+                        'name',
+                        'checklist' => [
+                            'description',
+                            'due_interval',
+                            'due_unit',
+                        ],
                         'items' => [
                             '*' => [
                                 'description',
@@ -49,11 +51,14 @@ class TemplateTest extends TestCase
                     ],
                 ],
             ],
-            'first_page_url',
-            'last_page_url',
-            'next_page_url',
-            'prev_page_url',
-            'total',
+            'meta' => [
+                'count',
+                'total',
+            ],
+            'links' => [
+                'first',
+                'last',
+            ],
         ]);
     }
 
@@ -78,15 +83,16 @@ class TemplateTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'name',
-                'checklist' => [
-                    'description',
-                    'due_interval',
-                    'due_unit',
+                'attributes' => [
+                    'name',
+                    'checklist' => [
+                        'description',
+                        'due_interval',
+                        'due_unit',
+                    ],
                     'items' => [
                         '*' => [
                             'description',
@@ -113,24 +119,26 @@ class TemplateTest extends TestCase
         /* send request */
         $this->actingAs($user)->json('post', '/api/templates', [
             'data' => [
-                'name' => $this->faker->name,
-                'checklist' => [
-                    'description' => $this->faker->sentence(6),
-                    'due_interval' => rand(1, 2),
-                    'due_unit' => 'hour',
-                ],
-                'items' => [
-                    [
-                        'description' => $this->faker->sentence(rand(3, 5)),
-                        'urgency' => rand(0, 3),
-                        'due_interval' => rand(1, 60),
-                        'due_unit' => 'minute',
+                'attributes' => [
+                    'name' => $this->faker->name,
+                    'checklist' => [
+                        'description' => $this->faker->sentence(6),
+                        'due_interval' => rand(1, 2),
+                        'due_unit' => 'hour',
                     ],
-                    [
-                        'description' => $this->faker->sentence(rand(3, 5)),
-                        'urgency' => rand(0, 3),
-                        'due_interval' => rand(1, 60),
-                        'due_unit' => 'minute',
+                    'items' => [
+                        [
+                            'description' => $this->faker->sentence(rand(3, 5)),
+                            'urgency' => rand(0, 3),
+                            'due_interval' => rand(1, 60),
+                            'due_unit' => 'minute',
+                        ],
+                        [
+                            'description' => $this->faker->sentence(rand(3, 5)),
+                            'urgency' => rand(0, 3),
+                            'due_interval' => rand(1, 60),
+                            'due_unit' => 'minute',
+                        ],
                     ],
                 ],
             ],
@@ -141,15 +149,16 @@ class TemplateTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'name',
-                'checklist' => [
-                    'description',
-                    'due_interval',
-                    'due_unit',
+                'attributes' => [
+                    'name',
+                    'checklist' => [
+                        'description',
+                        'due_interval',
+                        'due_unit',
+                    ],
                     'items' => [
                         '*' => [
                             'description',
@@ -203,19 +212,20 @@ class TemplateTest extends TestCase
         ]);
 
         /* check status code */
-        $this->seeStatusCode(201);
+        $this->seeStatusCode(200);
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'name',
-                'checklist' => [
-                    'description',
-                    'due_interval',
-                    'due_unit',
+                'attributes' => [
+                    'name',
+                    'checklist' => [
+                        'description',
+                        'due_interval',
+                        'due_unit',
+                    ],
                     'items' => [
                         '*' => [
                             'description',

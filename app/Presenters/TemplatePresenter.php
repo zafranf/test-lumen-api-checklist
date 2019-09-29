@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Presenters;
+
+use App\Presenters\BasePresenter;
+
+class TemplatePresenter extends BasePresenter
+{
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->resourceKeyItem =
+        $this->resourceKeyCollection = 'templates';
+    }
+
+    /**
+     * Prepare data to present
+     *
+     * @return \League\Fractal\TransformerAbstract
+     */
+    public function getTransformer()
+    {
+        return new \App\Transformers\TemplateTransformer();
+    }
+}
