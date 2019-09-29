@@ -62,12 +62,24 @@ class ChecklistController extends Controller
             ], 404);
         }
 
-        /* create */
-        $update = $this->repository->update($r->input('data.attributes'), $checklist->id);
+        /* update */
+        $attr = $r->input('data.attributes');
+        if (isset($attr['due'])) {
+            $attr['due'] = \Carbon\Carbon::parse($attr['due']);
+        }
+        if (isset($attr['completed_at'])) {
+            $attr['completed_at'] = \Carbon\Carbon::parse($attr['completed_at']);
+        }
+        $attr['updated_by'] = \Auth::user()->id;
+        $items = $attr['items'] ?? [];
+        if (!empty($items)) {
+            unset($attr['items']);
+        }
+        $update = $this->repository->update($attr, $checklist->id);
 
         /* save items */
         if ($r->input('data.attributes.items')) {
-            $this->saveItems($r, $update['data']['id']);
+            $this->saveItems($items, $update['data']['id']);
         }
 
         return response()->json($update);

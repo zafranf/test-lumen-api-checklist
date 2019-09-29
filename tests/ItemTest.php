@@ -124,7 +124,7 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
+        $item = $this->getExistsItem();
 
         /* send request */
         $this->actingAs($user)->get('/api/checklists/' . $item->checklist_id . '/items/' . $item->id);
@@ -210,7 +210,7 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
+        $item = $this->getExistsItem();
 
         /* send request */
         $this->actingAs($user)->json('patch', '/api/checklists/' . $item->checklist_id . '/items/' . $item->id, [
@@ -259,7 +259,7 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
+        $item = $this->getExistsItem();
 
         /* send request */
         $this->actingAs($user)->json('delete', '/api/checklists/' . $item->checklist_id . '/items/' . $item->id);
@@ -334,5 +334,15 @@ class ItemTest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    public function getExistsItem()
+    {
+        $item = \App\ChecklistItem::with('checklist')->inRandomOrder()->first();
+        if ($item->checklist === null) {
+            return $this->getExistsItem();
+        }
+
+        return $item;
     }
 }

@@ -165,7 +165,7 @@ class ChecklistTest extends TestCase
         $user = \App\User::find(1);
 
         /* get checklist */
-        $checklist = \App\Checklist::orderBy('created_at', 'desc')->first();
+        $checklist = \App\Checklist::inRandomOrder()->first();
 
         /* send request */
         $is_complete = rand(0, 1);
