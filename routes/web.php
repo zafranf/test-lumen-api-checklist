@@ -19,7 +19,6 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'api'], function ($router) {
     /* login & register */
     $router->post('/login', 'UserController@login');
-    $router->post('/register', 'UserController@store');
 
     $router->group(['middleware' => 'auth'], function ($router) {
         /* templates */
