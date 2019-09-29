@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 
 class TemplateController extends Controller
 {
-    /**
-     * @var TemplateRepository
-     */
     protected $repository;
 
     public function __construct(TemplateRepository $repository)
