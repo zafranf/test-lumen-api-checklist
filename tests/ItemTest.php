@@ -31,27 +31,32 @@ class ItemTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'current_page',
             'data' => [
                 '*' => [
+                    'type',
                     'id',
-                    'description',
-                    'is_completed',
-                    'completed_at',
-                    'due',
-                    'urgency',
-                    'checklist_id',
-                    'created_by',
-                    'updated_by',
-                    'created_at',
-                    'updated_at',
+                    'attributes' => [
+                        'description',
+                        'is_completed',
+                        'completed_at',
+                        'due',
+                        'urgency',
+                        'checklist_id',
+                        'created_by',
+                        'updated_by',
+                        'created_at',
+                        'updated_at',
+                    ],
                 ],
             ],
-            'first_page_url',
-            'last_page_url',
-            'next_page_url',
-            'prev_page_url',
-            'total',
+            'meta' => [
+                'count',
+                'total',
+            ],
+            'links' => [
+                'first',
+                'last',
+            ],
         ]);
     }
 
@@ -73,34 +78,35 @@ class ItemTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'due',
-                'urgency',
-                'task_id',
-                'object_id',
-                'object_domain',
-                'is_completed',
-                'completed_at',
-                'updated_by',
-                'created_at',
-                'updated_at',
-                'items' => [
-                    '*' => [
-                        'id',
-                        'description',
-                        'is_completed',
-                        'completed_at',
-                        'due',
-                        'urgency',
-                        'checklist_id',
-                        'created_by',
-                        'updated_by',
-                        'created_at',
-                        'updated_at',
+                'attributes' => [
+                    'description',
+                    'due',
+                    'urgency',
+                    'task_id',
+                    'object_id',
+                    'object_domain',
+                    'is_completed',
+                    'completed_at',
+                    'last_update_by',
+                    'created_at',
+                    'updated_at',
+                    'items' => [
+                        '*' => [
+                            'id',
+                            'description',
+                            'is_completed',
+                            'completed_at',
+                            'due',
+                            'urgency',
+                            'checklist_id',
+                            'created_by',
+                            'updated_by',
+                            'created_at',
+                            'updated_at',
+                        ],
                     ],
                 ],
             ],
@@ -118,33 +124,20 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::where('checklist_id', $this->checklist->id)->orderBy('created_at', 'desc')->first();
+        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
 
         /* send request */
-        $this->actingAs($user)->get('/api/checklists/' . $this->checklist->id . '/items/' . $item->id);
+        $this->actingAs($user)->get('/api/checklists/' . $item->checklist_id . '/items/' . $item->id);
 
         /* check status code */
         $this->seeStatusCode(200);
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'due',
-                'urgency',
-                'task_id',
-                'object_id',
-                'object_domain',
-                'is_completed',
-                'completed_at',
-                'updated_by',
-                'created_at',
-                'updated_at',
-                'item' => [
-                    'id',
+                'attributes' => [
                     'description',
                     'is_completed',
                     'completed_at',
@@ -173,10 +166,12 @@ class ItemTest extends TestCase
         /* send request */
         $this->actingAs($user)->json('post', '/api/checklists/' . $this->checklist->id . '/items', [
             'data' => [
-                'description' => $this->faker->sentence(rand(3, 6)),
-                'due' => \Carbon\Carbon::now(),
-                'urgency' => rand(1, 5),
-                'checklist_id' => $this->checklist->id,
+                'attribute' => [
+                    'description' => $this->faker->sentence(rand(3, 6)),
+                    'due' => \Carbon\Carbon::now(),
+                    'urgency' => rand(1, 5),
+                    'checklist_id' => $this->checklist->id,
+                ],
             ],
         ]);
 
@@ -185,20 +180,21 @@ class ItemTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'is_completed',
-                'completed_at',
-                'due',
-                'urgency',
-                'checklist_id',
-                'created_by',
-                'updated_by',
-                'created_at',
-                'updated_at',
+                'attributes' => [
+                    'description',
+                    'is_completed',
+                    'completed_at',
+                    'due',
+                    'urgency',
+                    'checklist_id',
+                    'created_by',
+                    'updated_by',
+                    'created_at',
+                    'updated_at',
+                ],
             ],
         ]);
     }
@@ -214,38 +210,40 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::where('checklist_id', $this->checklist->id)->orderBy('created_at', 'desc')->first();
+        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
 
         /* send request */
-        $is_complete = rand(0, 1);
-        $this->actingAs($user)->json('patch', '/api/checklists/' . $this->checklist->id . '/items/' . $item->id, [
+        $this->actingAs($user)->json('patch', '/api/checklists/' . $item->checklist_id . '/items/' . $item->id, [
             'data' => [
-                'description' => $this->faker->sentence(rand(3, 6)),
-                'due' => \Carbon\Carbon::now(),
-                'urgency' => rand(1, 5),
-                'checklist_id' => $this->checklist->id,
+                'attribute' => [
+                    'description' => $this->faker->sentence(rand(3, 6)),
+                    'due' => \Carbon\Carbon::now(),
+                    'urgency' => rand(1, 5),
+                    'checklist_id' => $this->checklist->id,
+                ],
             ],
         ]);
 
         /* check status code */
-        $this->seeStatusCode(201);
+        $this->seeStatusCode(200);
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
+                'type',
                 'id',
-                'description',
-                'is_completed',
-                'completed_at',
-                'due',
-                'urgency',
-                'checklist_id',
-                'created_by',
-                'updated_by',
-                'created_at',
-                'updated_at',
+                'attributes' => [
+                    'description',
+                    'is_completed',
+                    'completed_at',
+                    'due',
+                    'urgency',
+                    'checklist_id',
+                    'created_by',
+                    'updated_by',
+                    'created_at',
+                    'updated_at',
+                ],
             ],
         ]);
     }
@@ -261,10 +259,10 @@ class ItemTest extends TestCase
         $user = \App\User::find(1);
 
         /* get item */
-        $item = \App\ChecklistItem::where('checklist_id', $this->checklist->id)->orderBy('created_at', 'desc')->first();
+        $item = \App\ChecklistItem::orderBy('created_at', 'desc')->first();
 
         /* send request */
-        $this->actingAs($user)->json('delete', '/api/checklists/' . $this->checklist->id . '/items/' . $item->id);
+        $this->actingAs($user)->json('delete', '/api/checklists/' . $item->checklist_id . '/items/' . $item->id);
 
         /* check status code */
         $this->seeStatusCode(204);
