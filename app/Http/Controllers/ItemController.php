@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+/**
+ * @group Checklist Item
+ *
+ * APIs for managing users
+ */
 class ItemController extends Controller
 {
     public function index(Request $r)

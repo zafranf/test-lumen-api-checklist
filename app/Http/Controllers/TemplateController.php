@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+/**
+ * @group Template
+ *
+ * APIs for managing users
+ */
 class TemplateController extends Controller
 {
     public function index(Request $r)

@@ -5,8 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * @group Authentication
+ *
+ * APIs for managing users
+ */
 class UserController extends Controller
 {
+    /**
+     * Login
+     *
+     * User login to access application
+     *
+     */
     public function login(Request $r)
     {
         $user = \App\User::where('name', $r->input('username'))->orWhere('email', $r->input('username'))->first();
