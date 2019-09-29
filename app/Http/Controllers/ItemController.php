@@ -121,14 +121,13 @@ class ItemController extends Controller
 
             $data[] = [
                 'id' => $cl_item->id,
-                'is_completed' => $cl_item->is_completed,
+                'item_id' => $cl_item->id,
+                'is_completed' => $cl_item->is_completed ? true : false,
                 'checklist_id' => $cl_item->checklist_id,
             ];
         }
 
         return response()->json([
-            'success' => true,
-            'message' => ($complete ? 'Complete' : 'Uncomplete') . 'items success',
             'data' => $data,
         ]);
     }

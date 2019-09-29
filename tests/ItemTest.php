@@ -291,11 +291,10 @@ class ItemTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
                 '*' => [
                     'id',
+                    'item_id',
                     'is_completed',
                     'checklist_id',
                 ],
@@ -326,11 +325,10 @@ class ItemTest extends TestCase
 
         /* check response structure */
         $this->seeJsonStructure([
-            'success',
-            'message',
             'data' => [
                 '*' => [
                     'id',
+                    'item_id',
                     'is_completed',
                     'checklist_id',
                 ],
